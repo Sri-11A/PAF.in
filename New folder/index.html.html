@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced Financial Calculator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f3f6f9;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    header {
+      background: linear-gradient(to right, #667eea, #764ba2);
+      color: white;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      font-size: 2rem;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      background-color: #ffffff;
+      padding: 0.5rem;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .tab-button {
+      background: #e0e7ff;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      margin: 0 5px;
+      font-weight: bold;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+    .tab-button:hover {
+      background: #c7d2fe;
+    }
+    .tab-button.active {
+      background: #667eea;
+      color: white;
+    }
+    .tab-content {
+      display: none;
+      padding: 2rem;
+      background: #fff;
+      margin: 20px auto;
+      max-width: 800px;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+    }
+    button.calculate {
+      background: #00c9a7;
+      color: white;
+      padding: 14px;
+      border: none;
+      width: 100%;
+      border-radius: 10px;
+      font-size: 1rem;
+      margin-top: 1rem;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-weight: bold;
+    }
+    button.calculate:hover {
+      background: #00a58e;
+    }
+    .result-box {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .result-item {
+      flex: 1;
+      min-width: 200px;
+      margin: 10px;
+      text-align: center;
+    }
+    .result-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #667eea;
+      margin: 5px 0;
+    }
+    .result-label {
+      color: #64748b;
+      font-size: 14px;
+    }
+    .error {
+      color: #ef4444;
+      padding: 10px;
+      background: #fee2e2;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    canvas {
+      max-width: 100%;
+      margin-top: 20px;
+    }
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      margin: 15px 0;
+    }
+    .checkbox-group input {
+      width: auto;
+      margin-right: 10px;
+    }
+    .swp-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+    .swp-table th, .swp-table td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #e2e8f0;
+    }
+    .swp-table th {
+      background-color: #f1f5f9;
+      font-weight: 600;
+    }
+    .swp-table tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    .swp-table-container {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 20px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+    @media (max-width: 768px) {
+      header {
+        font-size: 1.5rem;
+        padding: 0.8rem;
+      }
+      .tab-content {
+        padding: 1.5rem;
+        margin: 15px;
+      }
+      .result-box {
+        flex-direction: column;
+      }
+      .result-item {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span>Advanced Financial Calculator</span>
+</header>
+
+<div class="tabs" role="tablist">
+  <button class="tab-button active" role="tab" aria-selected="true" aria-controls="sip" onclick="showTab(event, 'sip')">SIP</button>
+  <button class="tab-button" role="tab" aria-selected="false" aria-controls="lumpsum" onclick="showTab(event, 'lumpsum')">Lump Sum</button>
+  <button class="tab-button" role="tab" aria-selected="false" aria-controls="swp" onclick="showTab(event, 'swp')">SWP</button>
+</div>
+
+<!-- SIP Calculator -->
+<div id="sip" class="tab-content active" role="tabpanel" aria-labelledby="sip">
+  <div class="input-group">
+    <label for="sipAmount">Monthly Investment (₹)</label>
+    <input type="number" id="sipAmount" placeholder="e.g. 25000" min="500" step="500">
+  </div>
+  <div class="input-group">
+    <label for="sipRate">Expected Annual Return (%)</label>
+    <input type="number" id="sipRate" placeholder="e.g. 12" min="1" max="50" step="0.1">
+  </div>
+  <div class="input-group">
+    <label for="sipYears">Investment Period (Years)</label>
+    <input type="number" id="sipYears" placeholder="e.g. 10" min="1" max="50">
+  </div>
+  <button class="calculate" onclick="calculateSIP()">Calculate</button>
+  
+  <div id="sipResult">
+    <div class="result-box">
+      <div class="result-item">
+        <div class="result-label">Invested Amount</div>
+        <div class="result-value" id="sipInvested">₹0</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Estimated Returns</div>
+        <div class="result-value" id="sipReturns">₹0</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Total Value</div>
+        <div class="result-value" id="sipTotal">₹0</div>
+      </div>
+    </div>
+    <canvas id="sipChart"></canvas>
+  </div>
+</div>
+
+<!-- Lump Sum Calculator -->
+<div id="lumpsum" class="tab-content" role="tabpanel" aria-labelledby="lumpsum">
+  <div class="input-group">
+    <label for="lumpAmount">Investment Amount (₹)</label>
+    <input type="number" id="lumpAmount" placeholder="e.g. 500000" min="1000" step="1000">
+  </div>
+  <div class="input-group">
+    <label for="lumpRate">Expected Annual Return (%)</label>
+    <input type="number" id="lumpRate" placeholder="e.g. 12" min="1" max="50" step="0.1">
+  </div>
+  <div class="input-group">
+    <label for="lumpYears">Investment Period (Years)</label>
+    <input type="number" id="lumpYears" placeholder="e.g. 10" min="1" max="50">
+  </div>
+  <button class="calculate" onclick="calculateLumpSum()">Calculate</button>
+  
+  <div id="lumpResult">
+    <div class="result-box">
+      <div class="result-item">
+        <div class="result-label">Invested Amount</div>
+        <div class="result-value" id="lumpInvested">₹0</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Estimated Returns</div>
+        <div class="result-value" id="lumpReturns">₹0</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Total Value</div>
+        <div class="result-value" id="lumpTotal">₹0</div>
+      </div>
+    </div>
+    <canvas id="lumpChart"></canvas>
+  </div>
+</div>
+
+<!-- SWP Calculator -->
+<div id="swp" class="tab-content" role="tabpanel" aria-labelledby="swp">
+  <div class="input-group">
+    <label for="swpInvestment">Initial Investment (₹)</label>
+    <input type="number" id="swpInvestment" placeholder="e.g. 1000000" min="10000" step="10000">
+  </div>
+  <div class="input-group">
+    <label for="swpRate">Expected Annual Return (%)</label>
+    <input type="number" id="swpRate" placeholder="e.g. 12" min="1" max="50" step="0.1">
+  </div>
+  <div class="input-group">
+    <label for="swpGrowthYears">Growth Phase (Years before withdrawal)</label>
+    <input type="number" id="swpGrowthYears" placeholder="e.g. 10" min="0" max="50">
+  </div>
+  <div class="input-group">
+    <label for="swpWithdraw">Monthly Withdrawal (₹)</label>
+    <input type="number" id="swpWithdraw" placeholder="e.g. 10000" min="1000" step="1000">
+  </div>
+  <div class="input-group">
+    <label for="swpYears">Withdrawal Duration (Years)</label>
+    <input type="number" id="swpYears" placeholder="e.g. 20" min="1" max="50">
+  </div>
+  <button class="calculate" onclick="calculateSWP()">Calculate</button>
+  
+  <div id="swpResult">
+    <div class="result-box">
+      <div class="result-item">
+        <div class="result-label">Initial Investment</div>
+        <div class="result-value" id="swpInitial">₹0</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Value at Withdrawal</div>
+        <div class="result-value" id="swpStartValue">₹0</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Total Withdrawn</div>
+        <div class="result-value" id="swpWithdrawn">₹0</div>
+      </div>
+      <div class="result-item">
+        <div class="result-label">Remaining Balance</div>
+        <div class="result-value" id="swpRemaining">₹0</div>
+      </div>
+    </div>
+    <canvas id="swpChart"></canvas>
+    
+    <h3>Withdrawal Schedule</h3>
+    <div class="swp-table-container">
+      <table class="swp-table" id="swpSchedule">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Month</th>
+            <th>Withdrawal</th>
+            <th>Remaining Balance</th>
+          </tr>
+        </thead>
+        <tbody id="swpTableBody">
+          <!-- Table will be filled by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+// Store chart instances
+const chartInstances = {};
+
+// Format currency for display
+function formatCurrency(value) {
+  return '₹' + new Intl.NumberFormat('en-IN', {
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0
+  }).format(value);
+}
+
+// Show selected tab
+function showTab(event, id) {
+  // Hide all tab contents
+  document.querySelectorAll('.tab-content').forEach(tab => {
+    tab.classList.remove('active');
+    tab.setAttribute('aria-hidden', 'true');
+  });
+  
+  // Deactivate all tab buttons
+  document.querySelectorAll('.tab-button').forEach(btn => {
+    btn.classList.remove('active');
+    btn.setAttribute('aria-selected', 'false');
+  });
+  
+  // Show selected tab
+  document.getElementById(id).classList.add('active');
+  document.getElementById(id).setAttribute('aria-hidden', 'false');
+  event.target.classList.add('active');
+  event.target.setAttribute('aria-selected', 'true');
+}
+
+// Update chart function
+function updateChart(ctxId, labels, data, colors) {
+  const ctx = document.getElementById(ctxId);
+  
+  // Destroy previous chart if exists
+  if (chartInstances[ctxId]) {
+    chartInstances[ctxId].destroy();
+  }
+  
+  chartInstances[ctxId] = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        backgroundColor: colors,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `${context.label}: ${formatCurrency(context.raw)}`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// SIP Calculator
+function calculateSIP() {
+  const amountInput = document.getElementById('sipAmount');
+  const rateInput = document.getElementById('sipRate');
+  const yearsInput = document.getElementById('sipYears');
+  const resultDiv = document.getElementById('sipResult');
+  
+  try {
+    // Validate inputs
+    const P = parseFloat(amountInput.value);
+    const r = parseFloat(rateInput.value);
+    const t = parseInt(yearsInput.value);
+    
+    if (isNaN(P) || P < 500) throw new Error('Monthly investment must be at least ₹500');
+    if (isNaN(r) || r <= 0 || r > 50) throw new Error('Expected return must be between 0.1% and 50%');
+    if (isNaN(t) || t <= 0 || t > 50) throw new Error('Investment period must be between 1 and 50 years');
+    
+    // Calculate future value
+    const monthlyRate = r / 100 / 12;
+    const n = t * 12;
+    const futureValue = P * ((Math.pow(1 + monthlyRate, n) - 1) * (1 + monthlyRate) / monthlyRate);
+    const invested = P * n;
+    const gain = futureValue - invested;
+    
+    // Display results
+    document.getElementById('sipInvested').textContent = formatCurrency(invested);
+    document.getElementById('sipReturns').textContent = formatCurrency(gain);
+    document.getElementById('sipTotal').textContent = formatCurrency(futureValue);
+    
+    updateChart("sipChart", ["Invested", "Returns"], [invested, gain], ["#3b82f6", "#00c9a7"]);
+    
+    // Hide any previous error
+    const errorElement = resultDiv.querySelector('.error');
+    if (errorElement) errorElement.remove();
+    
+  } catch (error) {
+    const existingError = resultDiv.querySelector('.error');
+    if (!existingError) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error';
+      errorDiv.textContent = error.message;
+      resultDiv.prepend(errorDiv);
+    } else {
+      existingError.textContent = error.message;
+    }
+  }
+}
+
+// Lump Sum Calculator
+function calculateLumpSum() {
+  const P = parseFloat(document.getElementById('lumpAmount').value);
+  const r = parseFloat(document.getElementById('lumpRate').value) / 100;
+  const t = parseInt(document.getElementById('lumpYears').value);
+  const resultDiv = document.getElementById('lumpResult');
+  
+  try {
+    if (isNaN(P) || P < 1000) throw new Error('Investment amount must be at least ₹1,000');
+    if (isNaN(r) || r <= 0 || r > 0.5) throw new Error('Expected return must be between 0.1% and 50%');
+    if (isNaN(t) || t <= 0 || t > 50) throw new Error('Investment period must be between 1 and 50 years');
+    
+    const futureValue = P * Math.pow(1 + r, t);
+    const gain = futureValue - P;
+    
+    document.getElementById('lumpInvested').textContent = formatCurrency(P);
+    document.getElementById('lumpReturns').textContent = formatCurrency(gain);
+    document.getElementById('lumpTotal').textContent = formatCurrency(futureValue);
+    
+    updateChart("lumpChart", ["Invested", "Returns"], [P, gain], ["#8b5cf6", "#00c9a7"]);
+    
+    // Hide any previous error
+    const errorElement = resultDiv.querySelector('.error');
+    if (errorElement) errorElement.remove();
+    
+  } catch (error) {
+    const existingError = resultDiv.querySelector('.error');
+    if (!existingError) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error';
+      errorDiv.textContent = error.message;
+      resultDiv.prepend(errorDiv);
+    } else {
+      existingError.textContent = error.message;
+    }
+  }
+}
+
+// SWP Calculator
+function calculateSWP() {
+  let principal = parseFloat(document.getElementById('swpInvestment').value);
+  const annualRate = parseFloat(document.getElementById('swpRate').value) / 100;
+  const monthlyWithdraw = parseFloat(document.getElementById('swpWithdraw').value);
+  const growthYears = parseInt(document.getElementById('swpGrowthYears').value);
+  const withdrawYears = parseInt(document.getElementById('swpYears').value);
+  const resultDiv = document.getElementById('swpResult');
+  const tableBody = document.getElementById('swpTableBody');
+  
+  try {
+    if (isNaN(principal) || principal < 10000) throw new Error('Initial investment must be at least ₹10,000');
+    if (isNaN(annualRate) || annualRate <= 0 || annualRate > 0.5) throw new Error('Expected return must be between 0.1% and 50%');
+    if (isNaN(monthlyWithdraw) || monthlyWithdraw < 1000) throw new Error('Monthly withdrawal must be at least ₹1,000');
+    if (isNaN(growthYears) || growthYears < 0 || growthYears > 50) throw new Error('Growth phase must be between 0 and 50 years');
+    if (isNaN(withdrawYears) || withdrawYears <= 0 || withdrawYears > 50) throw new Error('Withdrawal duration must be between 1 and 50 years');
+    
+    const monthlyRate = annualRate / 12;
+    let totalWithdrawn = 0;
+    let startValue = 0;
+    
+    // Clear previous table
+    tableBody.innerHTML = '';
+    
+    // Growth phase (before withdrawals)
+    if (growthYears > 0) {
+      const growthMonths = growthYears * 12;
+      for (let i = 0; i < growthMonths; i++) {
+        principal = principal * (1 + monthlyRate);
+      }
+      startValue = principal;
+    }
+    
+    // Withdrawal phase
+    const totalMonths = withdrawYears * 12;
+    let monthsCompleted = 0;
+    let exhausted = false;
+    
+    for (let i = 0; i < totalMonths; i++) {
+      // Apply monthly growth
+      principal = principal * (1 + monthlyRate);
+      
+      // Calculate year and month for display
+      const currentYear = Math.floor(i / 12) + 1;
+      const currentMonth = (i % 12) + 1;
+      
+      // Withdraw if enough funds
+      if (principal >= monthlyWithdraw) {
+        principal -= monthlyWithdraw;
+        totalWithdrawn += monthlyWithdraw;
+        monthsCompleted++;
+        
+        // Add to table (only show some entries to prevent huge tables)
+        if (currentMonth === 1 || currentMonth === 6 || i === totalMonths - 1 || i < 12 || i % 12 === 0) {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${currentYear}</td>
+            <td>${currentMonth}</td>
+            <td>${formatCurrency(monthlyWithdraw)}</td>
+            <td>${formatCurrency(principal)}</td>
+          `;
+          tableBody.appendChild(row);
+        }
+      } else {
+        // Withdraw remaining balance
+        const finalWithdraw = principal;
+        totalWithdrawn += finalWithdraw;
+        principal = 0;
+        
+        // Add final row to table
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${currentYear}</td>
+          <td>${currentMonth}</td>
+          <td>${formatCurrency(finalWithdraw)}</td>
+          <td>₹0</td>
+        `;
+        tableBody.appendChild(row);
+        
+        exhausted = true;
+        break;
+      }
+    }
+    
+    // Display results
+    document.getElementById('swpInitial').textContent = formatCurrency(parseFloat(document.getElementById('swpInvestment').value));
+    document.getElementById('swpStartValue').textContent = formatCurrency(startValue);
+    document.getElementById('swpWithdrawn').textContent = formatCurrency(totalWithdrawn);
+    document.getElementById('swpRemaining').textContent = formatCurrency(principal);
+    
+    updateChart("swpChart", ["Withdrawn", "Remaining"], [totalWithdrawn, principal], ["#fbbf24", "#6366f1"]);
+    
+    // Hide any previous error
+    const errorElement = resultDiv.querySelector('.error');
+    if (errorElement) errorElement.remove();
+    
+  } catch (error) {
+    const existingError = resultDiv.querySelector('.error');
+    if (!existingError) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error';
+      errorDiv.textContent = error.message;
+      resultDiv.prepend(errorDiv);
+    } else {
+      existingError.textContent = error.message;
+    }
+  }
+}
+
+// Initialize calculators on page load
+window.onload = function() {
+  // Add input validation styling
+  document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', function() {
+      const value = parseFloat(this.value);
+      const min = parseFloat(this.min) || 0;
+      if (isNaN(value)) {
+        this.style.borderColor = '#ef4444';
+      } else if (value < min) {
+        this.style.borderColor = '#ef4444';
+      } else {
+        this.style.borderColor = '#ddd';
+      }
+    });
+  });
+};
+</script>
+
+</body>
+</html>
